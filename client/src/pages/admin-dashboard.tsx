@@ -155,7 +155,9 @@ This will automatically generate a username and password for the student, which 
   // Handle view registration details
   const handleViewDetails = (registration: Registration) => {
     toast({
-      title: "Registration Details",
+      title: registration.status === "approved" 
+        ? "Student Credentials & Details" 
+        : "Registration Details",
       description: (
         <div className="mt-2 text-sm">
           <p><span className="font-bold">Name:</span> {registration.fullName}</p>
@@ -165,14 +167,18 @@ This will automatically generate a username and password for the student, which 
           <p><span className="font-bold">Comments:</span> {registration.comments || "None"}</p>
           {registration.status === "approved" && (
             <>
-              <p><span className="font-bold">Username:</span> {registration.username}</p>
-              <p><span className="font-bold">Password:</span> {registration.password}</p>
+              <div className="mt-3 p-3 bg-green-50 rounded-md border border-green-200">
+                <p className="font-bold text-green-700 mb-1">Login Credentials:</p>
+                <p><span className="font-bold">Username:</span> <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">{registration.username}</span></p>
+                <p><span className="font-bold">Password:</span> <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">{registration.password}</span></p>
+                <p className="text-xs text-gray-500 mt-1">These credentials can be used by the student to access their courses.</p>
+              </div>
             </>
           )}
         </div>
       ),
       variant: "default",
-      duration: 10000,
+      duration: 15000,
     });
   };
   
@@ -241,6 +247,47 @@ This will automatically generate a username and password for the student, which 
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
+              <Button 
+                variant="outline" 
+                className="bg-primary text-white hover:bg-primary/90"
+                onClick={() => {
+                  // Find all approved registrations and display credentials
+                  const approvedRegistrations = registrations.filter(
+                    (reg: Registration) => reg.status === "approved"
+                  );
+                  
+                  if (approvedRegistrations.length === 0) {
+                    toast({
+                      title: "No Approved Students",
+                      description: "There are no approved students with credentials to display.",
+                      variant: "default",
+                    });
+                    return;
+                  }
+                  
+                  toast({
+                    title: "Student Credentials",
+                    description: (
+                      <div className="mt-2 text-sm space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                        <p className="font-bold text-primary">All Approved Student Credentials:</p>
+                        {approvedRegistrations.map((reg: Registration) => (
+                          <div key={reg.id} className="border-b pb-2 last:border-0">
+                            <p className="font-semibold">{reg.fullName}</p>
+                            <p><span className="text-gray-500">Student ID:</span> {reg.studentId}</p>
+                            <p><span className="text-gray-500">Email:</span> {reg.email}</p>
+                            <p><span className="text-gray-500">Username:</span> <span className="font-medium">{reg.username}</span></p>
+                            <p><span className="text-gray-500">Password:</span> <span className="font-medium">{reg.password}</span></p>
+                          </div>
+                        ))}
+                      </div>
+                    ),
+                    variant: "default",
+                    duration: 30000,
+                  });
+                }}
+              >
+                View All Credentials
+              </Button>
             </div>
           </div>
           
