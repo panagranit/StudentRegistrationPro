@@ -7,6 +7,8 @@ import {
   type InsertRegistration,
   type UpdateRegistration
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -32,92 +34,90 @@ export interface IStorage {
   }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private registrations: Map<number, Registration>;
-  currentUserId: number;
-  currentRegistrationId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.registrations = new Map();
-    this.currentUserId = 1;
-    this.currentRegistrationId = 1;
-    
-    // Create default admin user
-    this.createUser({
-      username: 'admin',
-      password: 'password',
-      isAdmin: true
-    });
+    this.initializeDatabase();
+  }
+
+  private async initializeDatabase() {
+    try {
+      // Check if admin user exists
+      const adminUser = await this.getUserByUsername('admin');
+      
+      if (!adminUser) {
+        // Create default admin user
+        console.log("Creating default admin user...");
+        await this.createUser({
+          username: 'admin',
+          password: 'password',
+          isAdmin: true
+        });
+      }
+    } catch (error) {
+      console.error("Error initializing database:", error);
+    }
   }
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   // Registration operations
   async getRegistrations(): Promise<Registration[]> {
-    return Array.from(this.registrations.values());
+    return await db.select().from(registrations);
   }
 
   async getRegistrationById(id: number): Promise<Registration | undefined> {
-    return this.registrations.get(id);
+    const [registration] = await db.select().from(registrations).where(eq(registrations.id, id));
+    return registration;
   }
 
   async getRegistrationByStudentId(studentId: string): Promise<Registration | undefined> {
-    return Array.from(this.registrations.values()).find(
-      (registration) => registration.studentId === studentId,
-    );
+    const [registration] = await db.select().from(registrations).where(eq(registrations.studentId, studentId));
+    return registration;
   }
 
   async getRegistrationByEmail(email: string): Promise<Registration | undefined> {
-    return Array.from(this.registrations.values()).find(
-      (registration) => registration.email === email,
-    );
+    const [registration] = await db.select().from(registrations).where(eq(registrations.email, email));
+    return registration;
   }
 
   async getRegistrationsByStatus(status: string): Promise<Registration[]> {
-    return Array.from(this.registrations.values()).filter(
-      (registration) => registration.status === status,
-    );
+    return await db.select().from(registrations).where(eq(registrations.status, status));
   }
 
   async createRegistration(insertRegistration: InsertRegistration): Promise<Registration> {
-    const id = this.currentRegistrationId++;
-    const now = new Date();
-    const registration: Registration = { 
-      ...insertRegistration, 
-      id, 
-      status: "pending", 
-      submittedAt: now,
-      username: null,
-      password: null
-    };
-    this.registrations.set(id, registration);
+    const [registration] = await db
+      .insert(registrations)
+      .values({
+        ...insertRegistration,
+        status: "pending"
+      })
+      .returning();
     return registration;
   }
 
   async updateRegistration(id: number, data: Partial<UpdateRegistration>): Promise<Registration | undefined> {
-    const registration = this.registrations.get(id);
-    if (!registration) return undefined;
-    
-    const updatedRegistration = { ...registration, ...data };
-    this.registrations.set(id, updatedRegistration);
+    const [updatedRegistration] = await db
+      .update(registrations)
+      .set(data)
+      .where(eq(registrations.id, id))
+      .returning();
     return updatedRegistration;
   }
 
@@ -128,19 +128,17 @@ export class MemStorage implements IStorage {
     rejectedCount: number;
     totalCount: number;
   }> {
-    const registrations = Array.from(this.registrations.values());
-    const pendingCount = registrations.filter(r => r.status === "pending").length;
-    const approvedCount = registrations.filter(r => r.status === "approved").length;
-    const rejectedCount = registrations.filter(r => r.status === "rejected").length;
-    const totalCount = registrations.length;
-    
-    return {
-      pendingCount,
-      approvedCount,
-      rejectedCount,
-      totalCount
-    };
+    const [stats] = await db
+      .select({
+        pendingCount: sql`count(*) filter (where ${registrations.status} = 'pending')`.mapWith(Number),
+        approvedCount: sql`count(*) filter (where ${registrations.status} = 'approved')`.mapWith(Number),
+        rejectedCount: sql`count(*) filter (where ${registrations.status} = 'rejected')`.mapWith(Number),
+        totalCount: sql`count(*)`.mapWith(Number),
+      })
+      .from(registrations);
+
+    return stats;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
