@@ -13,7 +13,7 @@ export default function Navbar() {
         <Link href="/">
           <div className="flex items-center space-x-2 cursor-pointer">
             <School className="h-6 w-6" />
-            <h1 className="text-xl font-semibold">Student Registration System</h1>
+            <h1 className="text-xl font-semibold">CT America</h1>
           </div>
         </Link>
         

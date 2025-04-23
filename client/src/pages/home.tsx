@@ -9,7 +9,7 @@ export default function Home() {
       <div className="flex justify-center mb-6">
         <School className="h-16 w-16 text-primary" />
       </div>
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">Student Registration System</h1>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">CT America</h1>
       <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
         Welcome to our secure and efficient student management platform. Register for courses, track your application status, and more.
       </p>

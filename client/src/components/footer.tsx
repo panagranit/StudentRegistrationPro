@@ -8,7 +8,7 @@ export default function Footer() {
           <div className="mb-4 md:mb-0">
             <div className="flex items-center">
               <School className="mr-2 h-5 w-5" />
-              <h3 className="text-lg font-semibold">Student Registration System</h3>
+              <h3 className="text-lg font-semibold">CT America</h3>
             </div>
             <p className="text-gray-400 text-sm mt-1">Secure and efficient student management</p>
           </div>
@@ -20,7 +20,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-6 pt-6 border-t border-gray-700 text-center text-gray-400 text-sm">
-          &copy; {new Date().getFullYear()} Student Registration System. All rights reserved.
+          &copy; {new Date().getFullYear()} CT America. All rights reserved.
         </div>
       </div>
     </footer>
