@@ -276,6 +276,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Secure API key middleware for external services
+  const API_KEY = "ct_america_api_key_2025"; // Hardcoded API key for now
+  
+  const validateApiKey = (req: Request, res: Response, next: any) => {
+    const apiKey = req.headers["x-api-key"];
+    
+    if (!apiKey || apiKey !== API_KEY) {
+      return res.status(403).json({ 
+        status: "error", 
+        message: "Access denied. Invalid API key." 
+      });
+    }
+    
+    next();
+  };
+
+  // External API endpoint to check user credentials
+  app.post("/api/check_user", validateApiKey, async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Email and password are required" 
+        });
+      }
+      
+      // Find registration with matching email/password and approved status
+      const registrations = await storage.getRegistrations();
+      const registration = registrations.find(
+        (r) => r.email === email && 
+               r.password === password && 
+               r.status === "approved"
+      );
+      
+      if (registration) {
+        // Return approved status for valid credentials
+        return res.json({ 
+          status: "approved", 
+          studentId: registration.studentId,
+          fullName: registration.fullName,
+          course: registration.course
+        });
+      } else {
+        // Return denied status for invalid credentials
+        return res.json({ 
+          status: "denied" 
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ 
+        status: "error", 
+        message: (error as Error).message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
