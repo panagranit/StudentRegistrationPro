@@ -64,12 +64,19 @@ export default function Navbar() {
                 </Link>
               )}
               
-              {location !== "/admin/login" && (
-                <Link href="/admin/login">
-                  <Button variant="secondary" size="sm">
-                    Login
-                  </Button>
-                </Link>
+              {location !== "/admin/login" && location !== "/student/login" && (
+                <div className="flex gap-2">
+                  <Link href="/student/login">
+                    <Button variant="secondary" size="sm">
+                      Student Login
+                    </Button>
+                  </Link>
+                  <Link href="/admin/login">
+                    <Button variant="outline" size="sm" className="bg-white text-primary hover:bg-gray-100">
+                      Admin
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           )}

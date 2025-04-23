@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/confirmation-modal";
-import { CheckCircle, X, XCircle, Eye, Search, Hourglass, Users } from "lucide-react";
+import { CheckCircle, X, XCircle, Eye, Search, Hourglass, Users, Loader2 } from "lucide-react";
 
 type Registration = {
   id: number;

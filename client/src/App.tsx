@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import Registration from "@/pages/registration";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
+import StudentLogin from "@/pages/student-login";
 import RegistrationConfirmation from "@/pages/registration-confirmation";
 import StudentAccess from "@/pages/student-access";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -25,6 +26,7 @@ function Router() {
           <Route path="/admin/login" component={AdminLogin} />
           <Route path="/admin/dashboard" component={AdminDashboard} />
           <Route path="/confirmation/:id" component={RegistrationConfirmation} />
+          <Route path="/student/login" component={StudentLogin} />
           <Route path="/student/access" component={StudentAccess} />
           <Route component={NotFound} />
         </Switch>
