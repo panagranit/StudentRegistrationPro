@@ -111,9 +111,31 @@ export default function AdminDashboard() {
     setModal({
       isOpen: true,
       title: "Confirm Approval",
-      message: `Are you sure you want to approve ${registration.fullName}'s registration?`,
+      message: `Are you sure you want to approve ${registration.fullName}'s registration? 
+      
+This will automatically generate a username and password for the student, which they can use to access online classes.`,
       onConfirm: () => {
-        updateStatusMutation.mutate({ id: registration.id, status: "approved" });
+        updateStatusMutation.mutate(
+          { id: registration.id, status: "approved" }, 
+          { 
+            onSuccess: (data) => {
+              // Show toast with credentials
+              toast({
+                title: "Registration Approved",
+                description: (
+                  <div className="mt-2 text-sm">
+                    <p>Credentials were generated for {registration.fullName}:</p>
+                    <p className="mt-1"><span className="font-bold">Username:</span> {data.username}</p>
+                    <p><span className="font-bold">Password:</span> {data.password}</p>
+                    <p className="mt-2 text-xs text-gray-500">Make sure to save these credentials. The password cannot be recovered later.</p>
+                  </div>
+                ),
+                variant: "default",
+                duration: 15000,
+              });
+            }
+          }
+        );
       },
     });
   };

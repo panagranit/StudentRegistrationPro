@@ -234,23 +234,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const data = updateRegistrationSchema.partial().parse(req.body);
       
-      // If approving, generate username and password if not provided
-      if (data.status === "approved" && (!data.username || !data.password)) {
+      // If approving, ALWAYS generate username and password
+      if (data.status === "approved") {
         const registration = await storage.getRegistrationById(id);
         if (!registration) {
           return res.status(404).json({ message: "Registration not found" });
         }
         
         // Generate username from email (part before @)
-        if (!data.username) {
-          data.username = registration.email.split('@')[0];
-        }
+        // Add student ID suffix to make it more unique
+        data.username = `${registration.email.split('@')[0]}_${registration.studentId.substring(0, 4)}`;
         
-        // Generate a random password if not provided
-        if (!data.password) {
-          const randomPassword = Math.random().toString(36).slice(-8);
-          data.password = randomPassword;
+        // Generate a strong random password
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let randomPassword = '';
+        for (let i = 0; i < 10; i++) {
+          randomPassword += characters.charAt(Math.floor(Math.random() * characters.length));
         }
+        data.password = randomPassword;
       }
       
       const updatedRegistration = await storage.updateRegistration(id, data);
