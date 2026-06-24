@@ -18,7 +18,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || "student-registration-secret",
+      secret: process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({
@@ -277,11 +277,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Secure API key middleware for external services
-  const API_KEY = "ct_america_api_key_2025"; // Hardcoded API key for now
-  
+  const API_KEY = process.env.CT_AMERICA_API_KEY;
+
   const validateApiKey = (req: Request, res: Response, next: any) => {
     const apiKey = req.headers["x-api-key"];
-    
+
+    if (!API_KEY) {
+      return res.status(500).json({ status: "error", message: "API key not configured on server." });
+    }
+
     if (!apiKey || apiKey !== API_KEY) {
       return res.status(403).json({ 
         status: "error", 
